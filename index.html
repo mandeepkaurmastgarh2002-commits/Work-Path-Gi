@@ -81,15 +81,22 @@ async function logout(){
  showProfile(null);
  message("You have signed out.");
 }
+
 async function saveProfile(){
  const {data:{user}}=await db.auth.getUser();
  if(!user){message("Please sign in first.");return;}
+
  const file=document.getElementById("video").files[0];
- if(!file){message("Please choose a work video.");return;}
- const path=user.id+"/"+Date.now()+"-"+file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
- message("Uploading your video...");
- const {error:uploadError}=await db.storage.from("work-videos").upload(path,file);
- if(uploadError){message(uploadError.message);return;}
+ let path=null;
+
+ if(file){
+  const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+  path=user.id+"/"+Date.now()+"-"+safeName;
+  message("Uploading your video...");
+  const {error:uploadError}=await db.storage.from("work-videos").upload(path,file);
+  if(uploadError){message(uploadError.message);return;}
+ }
+
  const profile={
   id:user.id,
   full_name:document.getElementById("name").value,
@@ -99,10 +106,12 @@ async function saveProfile(){
   video_url:path,
   role:"job_seeker"
  };
+
  const {error}=await db.from("profiles").upsert(profile);
  if(error){message("Profile save error: "+error.message);return;}
- message("Your profile and video have been saved!");
+ message(file ? "Your profile and video have been saved!" : "Your profile has been saved!");
 }
+
 (async()=>{
  const {data:{session}}=await db.auth.getSession();
  showProfile(session?.user||null);
