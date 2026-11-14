@@ -7,13 +7,21 @@
 <title>Work Path GI</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-body{font-family:Arial,sans-serif;background:#f3f7fa;color:#142b45;margin:0;padding:24px}
-main{max-width:520px;margin:30px auto;background:white;padding:24px;border-radius:18px;box-shadow:0 5px 25px #0001}
-h1{color:#12345a}p{color:#526579}
-input,textarea,button{box-sizing:border-box;width:100%;padding:14px;margin:8px 0;border:1px solid #ccd6df;border-radius:9px;font-size:16px}
-button{background:#087f83;color:white;border:0;font-weight:bold}
+*{box-sizing:border-box}
+body{font-family:Arial,sans-serif;background:#f3f7fa;color:#142b45;margin:0;padding:18px}
+main{max-width:520px;margin:25px auto;background:white;padding:24px;border-radius:18px;box-shadow:0 5px 25px #0001}
+h1{color:#12345a;margin-bottom:8px}
+h2,h3{color:#12345a}
+p{color:#526579;line-height:1.5}
+input{width:100%;padding:14px;margin:8px 0 14px;border:1px solid #ccd6df;border-radius:9px;font-size:16px}
+label{display:block;font-weight:bold;margin-top:12px}
+button{box-sizing:border-box;width:100%;padding:14px;margin:8px 0;border:0;border-radius:9px;font-size:16px;font-weight:bold;background:#087f83;color:white;cursor:pointer;min-height:48px}
+.secondary{background:#e8f2f4;color:#12345a}
 .small{font-size:13px}
 #status{overflow-wrap:anywhere}
+.detail{background:#f3f7fa;padding:13px;border-radius:9px;margin:9px 0;overflow-wrap:anywhere}
+.detail strong{display:block;color:#12345a;margin-bottom:5px}
+.hidden{display:none}
 </style>
 </head>
 <body>
@@ -23,98 +31,320 @@ button{background:#087f83;color:white;border:0;font-weight:bold}
 
 <section id="auth">
 <h3>Create account or sign in</h3>
-<input id="email" type="email" placeholder="Email address">
-<input id="password" type="password" placeholder="Password">
+<label for="email">Email address</label>
+<input id="email" type="email" placeholder="Enter your email">
+<label for="password">Password</label>
+<input id="password" type="password" placeholder="Enter your password">
 <button onclick="signup()">Create account</button>
 <button onclick="login()">Sign in</button>
- <button onclick="resetPassword()">Forgot Password?</button>
+<button class="secondary" onclick="resetPassword()">Forgot Password?</button>
 </section>
 
 <section id="profile" hidden>
 <h3>Your work profile</h3>
-<input id="name" placeholder="Full name">
-<input id="contact" placeholder="Phone number or email">
-<input id="experience" placeholder="Work experience">
-<input id="skills" placeholder="Your skills">
-<label>Upload a video showing your work</label>
+<p>Add your details so employers can understand your skills and experience.</p>
+
+<label for="name">Full name</label>
+<input id="name" placeholder="Enter your full name">
+
+<label for="contact">Phone number or email</label>
+<input id="contact" placeholder="How can employers contact you?">
+
+<label for="experience">Work experience</label>
+<input id="experience" placeholder="Example: 2 years, Fresher">
+
+<label for="skills">Your skills</label>
+<input id="skills" placeholder="Example: Cooking, Design, Excel">
+
+<label for="video">Work video (optional)</label>
 <input id="video" type="file" accept="video/*">
+
 <button onclick="saveProfile()">Save my profile</button>
-<button onclick="logout()">Sign out</button>
+<button class="secondary" onclick="openDashboard(currentUser)">Back to dashboard</button>
 </section>
+
+<section id="dashboard" hidden>
+<h2>Your Dashboard</h2>
+<p>Welcome! Your job seeker profile is here.</p>
+
+<div class="detail">
+<strong>Full name</strong>
+<span id="displayName">Not added</span>
+</div>
+<div class="detail">
+<strong>Contact</strong>
+<span id="displayContact">Not added</span>
+</div>
+<div class="detail">
+<strong>Experience</strong>
+<span id="displayExperience">Not added</span>
+</div>
+<div class="detail">
+<strong>Skills</strong>
+<span id="displaySkills">Not added</span>
+</div>
+<div class="detail">
+<strong>Work video</strong>
+<span id="displayVideo">No video uploaded yet</span>
+</div>
+
+<button onclick="editProfile()">Edit my profile</button>
+<button class="secondary" onclick="logout()">Sign out</button>
+</section>
+
+<section id="recovery" hidden>
+<h3>Choose a new password</h3>
+<label for="newPassword">New password</label>
+<input id="newPassword" type="password" placeholder="Enter your new password">
+<button onclick="updatePassword()">Save new password</button>
+</section>
+
 <p id="status" class="small"></p>
 </main>
 
 <script>
 const SUPABASE_URL = "https://gwgdbyamsdmxpyjkarkq.supabase.co";
-const SUPABASE_KEY = "sb_publishable_6e_Lc1bkrc6HOCBtTuqUGw_TdSLfE-A";
+const SUPABASE_KEY = "sb_publishable_6e_Lc6bkrc6HOCBtTuqUGw_TdSLfE-A";
 const db = supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
+let currentUser = null;
+let currentProfile = null;
+
 function message(t){
- document.getElementById("status").textContent=t;
+ document.getElementById("status").textContent = t;
 }
-function showProfile(user){
- document.getElementById("auth").hidden=!!user;
- document.getElementById("profile").hidden=!user;
+
+function showScreen(screen){
+ document.getElementById("auth").hidden = screen !== "auth";
+ document.getElementById("profile").hidden = screen !== "profile";
+ document.getElementById("dashboard").hidden = screen !== "dashboard";
+ document.getElementById("recovery").hidden = screen !== "recovery";
 }
+
 async function signup(){
- const email=document.getElementById("email").value;
- const password=document.getElementById("password").value;
- const {data,error}=await db.auth.signUp({email,password});
- if(error){message(error.message);return;}
+ const email = document.getElementById("email").value.trim();
+ const password = document.getElementById("password").value;
+
+ if(!email || !password){
+  message("Please enter your email and password.");
+  return;
+ }
+
+ const {data,error} = await db.auth.signUp({email,password});
+
+ if(error){
+  message(error.message);
+  return;
+ }
+
  if(data.session){
-  showProfile(data.user);
-  message("Account created. Complete your profile.");
+  currentUser = data.user;
+  currentProfile = null;
+  showScreen("profile");
+  message("Account created. Please complete your profile.");
  }else{
   message("Check your email to confirm your account, then sign in.");
  }
 }
+
 async function login(){
- const email=document.getElementById("email").value;
- const password=document.getElementById("password").value;
- const {data,error}=await db.auth.signInWithPassword({email,password});
- if(error){message(error.message);return;}
- showProfile(data.user);
- message("Welcome! Complete your profile.");
+ const email = document.getElementById("email").value.trim();
+ const password = document.getElementById("password").value;
+
+ if(!email || !password){
+  message("Please enter your email and password.");
+  return;
+ }
+
+ const {data,error} = await db.auth.signInWithPassword({email,password});
+
+ if(error){
+  message(error.message);
+  return;
+ }
+
+ await openDashboard(data.user);
 }
-async function logout(){
- await db.auth.signOut();
- showProfile(null);
- message("You have signed out.");
+
+async function openDashboard(user){
+ currentUser = user;
+
+ message("Loading your profile...");
+
+ const {data,error} = await db
+  .from("profiles")
+  .select("full_name,contact,experience,skills,video_url")
+  .eq("id",user.id)
+  .maybeSingle();
+
+ if(error){
+  currentProfile = null;
+  showScreen("profile");
+  message("Please complete or update your profile.");
+  return;
+ }
+
+ if(!data){
+  currentProfile = null;
+  showScreen("profile");
+  message("Welcome! Please complete your profile.");
+  return;
+ }
+
+ currentProfile = data;
+
+ document.getElementById("displayName").textContent = data.full_name || "Not added";
+ document.getElementById("displayContact").textContent = data.contact || "Not added";
+ document.getElementById("displayExperience").textContent = data.experience || "Not added";
+ document.getElementById("displaySkills").textContent = data.skills || "Not added";
+ document.getElementById("displayVideo").textContent =
+  data.video_url ? "Your work video is saved." : "No video uploaded yet.";
+
+ showScreen("dashboard");
+ message("Your dashboard is ready.");
+}
+
+function editProfile(){
+ if(currentProfile){
+  document.getElementById("name").value = currentProfile.full_name || "";
+  document.getElementById("contact").value = currentProfile.contact || "";
+  document.getElementById("experience").value = currentProfile.experience || "";
+  document.getElementById("skills").value = currentProfile.skills || "";
+ }
+ document.getElementById("video").value = "";
+ showScreen("profile");
+ message("Update your details and save.");
 }
 
 async function saveProfile(){
- const {data:{user}}=await db.auth.getUser();
- if(!user){message("Please sign in first.");return;}
+ const {data:{user},error:userError} = await db.auth.getUser();
 
- const file=document.getElementById("video").files[0];
- let path=null;
-
- if(file){
-  const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
-  path=user.id+"/"+Date.now()+"-"+safeName;
-  message("Uploading your video...");
-  const {error:uploadError}=await db.storage.from("work-videos").upload(path,file);
-  if(uploadError){message(uploadError.message);return;}
+ if(userError || !user){
+  message("Please sign in first.");
+  return;
  }
 
- const profile={
+ currentUser = user;
+
+ const file = document.getElementById("video").files[0];
+ let path = currentProfile?.video_url || null;
+
+ if(file){
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+  path = user.id + "/" + Date.now() + "-" + safeName;
+
+  message("Uploading your video...");
+
+  const {error:uploadError} = await db.storage
+   .from("work-videos")
+   .upload(path,file);
+
+  if(uploadError){
+   message(uploadError.message);
+   return;
+  }
+ }
+
+ const profile = {
   id:user.id,
-  full_name:document.getElementById("name").value,
-  contact:document.getElementById("contact").value,
-  experience:document.getElementById("experience").value,
-  skills:document.getElementById("skills").value,
+  full_name:document.getElementById("name").value.trim(),
+  contact:document.getElementById("contact").value.trim(),
+  experience:document.getElementById("experience").value.trim(),
+  skills:document.getElementById("skills").value.trim(),
   video_url:path,
   role:"job_seeker"
  };
 
- const {error}=await db.from("profiles").upsert(profile);
- if(error){message("Profile save error: "+error.message);return;}
- message(file ? "Your profile and video have been saved!" : "Your profile has been saved!");
+ message("Saving your profile...");
+
+ const {error} = await db.from("profiles").upsert(profile);
+
+ if(error){
+  message("Profile save error: " + error.message);
+  return;
+ }
+
+ currentProfile = profile;
+
+ await openDashboard(user);
+ message("Your profile has been saved!");
 }
 
+async function resetPassword(){
+ const email = document.getElementById("email").value.trim();
+
+ if(!email){
+  message("Enter your email address first.");
+  return;
+ }
+
+ const {error} = await db.auth.resetPasswordForEmail(email,{
+  redirectTo:"https://mandeepkaurmastgarh2002-commits.github.io/Work-Path-Gi/"
+ });
+
+ if(error){
+  message(error.message);
+  return;
+ }
+
+ message("Password reset link sent. Check your email.");
+}
+
+async function updatePassword(){
+ const newPassword = document.getElementById("newPassword").value;
+
+ if(!newPassword || newPassword.length < 6){
+  message("Please enter a password with at least 6 characters.");
+  return;
+ }
+
+ const {error} = await db.auth.updateUser({password:newPassword});
+
+ if(error){
+  message(error.message);
+  return;
+ }
+
+ document.getElementById("newPassword").value = "";
+ const {data:{user}} = await db.auth.getUser();
+
+ if(user){
+  await openDashboard(user);
+ }else{
+  showScreen("auth");
+ }
+
+ message("Your password has been updated.");
+}
+
+async function logout(){
+ await db.auth.signOut();
+ currentUser = null;
+ currentProfile = null;
+ showScreen("auth");
+ message("You have signed out.");
+}
+
+db.auth.onAuthStateChange((event,session)=>{
+ if(event === "PASSWORD_RECOVERY"){
+  showScreen("recovery");
+  message("Enter your new password.");
+ }
+ if(event === "SIGNED_OUT"){
+  currentUser = null;
+  currentProfile = null;
+  showScreen("auth");
+ }
+});
+
 (async()=>{
- const {data:{session}}=await db.auth.getSession();
- showProfile(session?.user||null);
+ const {data:{session}} = await db.auth.getSession();
+
+ if(session){
+  await openDashboard(session.user);
+ }else{
+  showScreen("auth");
+ }
 })();
 </script>
 </body>
