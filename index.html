@@ -216,6 +216,22 @@ function editProfile(){
  message("Update your details and save.");
 }
 
+
+
+ currentProfile = profile;
+
+ await openDashboard(user);
+ message("Your profile has been saved!");
+}
+
+async function resetPassword(){
+ const email = document.getElementById("email").value.trim();
+
+ if(!email){
+  message("Enter your email address first.");
+  return;
+ }
+
 async function saveProfile(){
  const {data:{user},error:userError} = await db.auth.getUser();
 
@@ -240,7 +256,7 @@ async function saveProfile(){
    .upload(path,file);
 
   if(uploadError){
-   message(uploadError.message);
+   message("Video upload failed: " + uploadError.message);
    return;
   }
  }
@@ -266,17 +282,16 @@ async function saveProfile(){
 
  currentProfile = profile;
 
- await openDashboard(user);
- message("Your profile has been saved!");
+ document.getElementById("displayName").textContent = profile.full_name || "Not added";
+ document.getElementById("displayContact").textContent = profile.contact || "Not added";
+ document.getElementById("displayExperience").textContent = profile.experience || "Not added";
+ document.getElementById("displaySkills").textContent = profile.skills || "Not added";
+ document.getElementById("displayVideo").textContent =
+  path ? "Your work video is saved." : "No video uploaded yet.";
+
+ showScreen("dashboard");
+ message("Your profile has been saved successfully!");
 }
-
-async function resetPassword(){
- const email = document.getElementById("email").value.trim();
-
- if(!email){
-  message("Enter your email address first.");
-  return;
- }
 
  const {error} = await db.auth.resetPasswordForEmail(email,{
   redirectTo:"https://mandeepkaurmastgarh2002-commits.github.io/Work-Path-Gi/"
