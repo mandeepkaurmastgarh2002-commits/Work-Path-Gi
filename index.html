@@ -232,6 +232,18 @@ async function resetPassword(){
   return;
  }
 
+ const {error} = await db.auth.resetPasswordForEmail(email,{
+  redirectTo:"https://mandeepkaurmastgarh2002-commits.github.io/Work-Path-Gi/"
+ });
+
+ if(error){
+  message(error.message);
+  return;
+ }
+
+ message("Password reset link sent. Check your email.");
+}
+
 async function saveProfile(){
  const {data:{user},error:userError} = await db.auth.getUser();
 
@@ -293,17 +305,6 @@ async function saveProfile(){
  message("Your profile has been saved successfully!");
 }
 
- const {error} = await db.auth.resetPasswordForEmail(email,{
-  redirectTo:"https://mandeepkaurmastgarh2002-commits.github.io/Work-Path-Gi/"
- });
-
- if(error){
-  message(error.message);
-  return;
- }
-
- message("Password reset link sent. Check your email.");
-}
 
 async function updatePassword(){
  const newPassword = document.getElementById("newPassword").value;
