@@ -5,41 +5,110 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Work Path GI</title>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 *{box-sizing:border-box}
-body{font-family:Arial,sans-serif;background:#f3f7fa;color:#142b45;margin:0;padding:18px}
-main{max-width:520px;margin:25px auto;background:white;padding:24px;border-radius:18px;box-shadow:0 5px 25px #0001}
+
+body{
+ font-family:Arial,sans-serif;
+ background:#f3f7fa;
+ color:#142b45;
+ margin:0;
+ padding:18px;
+}
+
+main{
+ max-width:520px;
+ margin:25px auto;
+ background:white;
+ padding:24px;
+ border-radius:18px;
+ box-shadow:0 5px 25px #0001;
+}
+
 h1{color:#12345a;margin-bottom:8px}
 h2,h3{color:#12345a}
 p{color:#526579;line-height:1.5}
-input{width:100%;padding:14px;margin:8px 0 14px;border:1px solid #ccd6df;border-radius:9px;font-size:16px}
-label{display:block;font-weight:bold;margin-top:12px}
-button{box-sizing:border-box;width:100%;padding:14px;margin:8px 0;border:0;border-radius:9px;font-size:16px;font-weight:bold;background:#087f83;color:white;cursor:pointer;min-height:48px}
-.secondary{background:#e8f2f4;color:#12345a}
+
+input{
+ width:100%;
+ padding:14px;
+ margin:8px 0 14px;
+ border:1px solid #ccd6df;
+ border-radius:9px;
+ font-size:16px;
+}
+
+label{
+ display:block;
+ font-weight:bold;
+ margin-top:12px;
+}
+
+button{
+ width:100%;
+ padding:14px;
+ margin:8px 0;
+ border:0;
+ border-radius:9px;
+ font-size:16px;
+ font-weight:bold;
+ background:#087f83;
+ color:white;
+ cursor:pointer;
+ min-height:48px;
+}
+
+.secondary{
+ background:#e8f2f4;
+ color:#12345a;
+}
+
 .small{font-size:13px}
 #status{overflow-wrap:anywhere}
-.detail{background:#f3f7fa;padding:13px;border-radius:9px;margin:9px 0;overflow-wrap:anywhere}
-.detail strong{display:block;color:#12345a;margin-bottom:5px}
-.hidden{display:none}
+
+.detail{
+ background:#f3f7fa;
+ padding:13px;
+ border-radius:9px;
+ margin:9px 0;
+ overflow-wrap:anywhere;
+}
+
+.detail strong{
+ display:block;
+ color:#12345a;
+ margin-bottom:5px;
+}
+
+[hidden]{display:none !important}
 </style>
 </head>
+
 <body>
 <main>
+
 <h1>Work Path GI</h1>
 <p>Show your skills. Let employers discover your work.</p>
 
+<!-- SIGN IN AND CREATE ACCOUNT -->
 <section id="auth">
 <h3>Create account or sign in</h3>
+
 <label for="email">Email address</label>
 <input id="email" type="email" placeholder="Enter your email">
+
 <label for="password">Password</label>
 <input id="password" type="password" placeholder="Enter your password">
+
 <button onclick="signup()">Create account</button>
 <button onclick="login()">Sign in</button>
 <button class="secondary" onclick="resetPassword()">Forgot Password?</button>
 </section>
 
+<!-- PROFILE FORM -->
 <section id="profile" hidden>
 <h3>Your work profile</h3>
 <p>Add your details so employers can understand your skills and experience.</p>
@@ -60,9 +129,9 @@ button{box-sizing:border-box;width:100%;padding:14px;margin:8px 0;border:0;borde
 <input id="video" type="file" accept="video/*">
 
 <button onclick="saveProfile()">Save my profile</button>
-<button class="secondary" onclick="openDashboard(currentUser)">Back to dashboard</button>
 </section>
 
+<!-- DASHBOARD -->
 <section id="dashboard" hidden>
 <h2>Your Dashboard</h2>
 <p>Welcome! Your job seeker profile is here.</p>
@@ -71,18 +140,22 @@ button{box-sizing:border-box;width:100%;padding:14px;margin:8px 0;border:0;borde
 <strong>Full name</strong>
 <span id="displayName">Not added</span>
 </div>
+
 <div class="detail">
 <strong>Contact</strong>
 <span id="displayContact">Not added</span>
 </div>
+
 <div class="detail">
 <strong>Experience</strong>
 <span id="displayExperience">Not added</span>
 </div>
+
 <div class="detail">
 <strong>Skills</strong>
 <span id="displaySkills">Not added</span>
 </div>
+
 <div class="detail">
 <strong>Work video</strong>
 <span id="displayVideo">No video uploaded yet</span>
@@ -92,19 +165,25 @@ button{box-sizing:border-box;width:100%;padding:14px;margin:8px 0;border:0;borde
 <button class="secondary" onclick="logout()">Sign out</button>
 </section>
 
+<!-- PASSWORD RECOVERY -->
 <section id="recovery" hidden>
 <h3>Choose a new password</h3>
+
 <label for="newPassword">New password</label>
 <input id="newPassword" type="password" placeholder="Enter your new password">
+
 <button onclick="updatePassword()">Save new password</button>
 </section>
 
 <p id="status" class="small"></p>
+
 </main>
 
 <script>
 const SUPABASE_URL = "https://gwgdbyamsdmxpyjkarkq.supabase.co";
-const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3Z2RieWFtc2RteHB5amthcmtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ1MzQ1NzQsImV4cCI6MjExMDExMDU3NH0.fxL-lWo9DB15Y6sR2XElJYaQ1VxLvp0hSQi-5uc1A3o";
+
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd3Z2RieWFtc2RteHB5amthcmtxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQ1MzQ1NzQsImV4cCI6MjExMDExMDU3NH0.fxL-lWo9DB15Y6sR2XElJYaQ1VxLvp0hSQi-5uc1A3o";
+
 const db = supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 
 let currentUser = null;
@@ -121,6 +200,7 @@ function showScreen(screen){
  document.getElementById("recovery").hidden = screen !== "recovery";
 }
 
+// CREATE ACCOUNT
 async function signup(){
  const email = document.getElementById("email").value.trim();
  const password = document.getElementById("password").value;
@@ -130,7 +210,10 @@ async function signup(){
   return;
  }
 
- const {data,error} = await db.auth.signUp({email,password});
+ const {data,error} = await db.auth.signUp({
+  email:email,
+  password:password
+ });
 
  if(error){
   message(error.message);
@@ -147,6 +230,7 @@ async function signup(){
  }
 }
 
+// SIGN IN
 async function login(){
  const email = document.getElementById("email").value.trim();
  const password = document.getElementById("password").value;
@@ -156,7 +240,10 @@ async function login(){
   return;
  }
 
- const {data,error} = await db.auth.signInWithPassword({email,password});
+ const {data,error} = await db.auth.signInWithPassword({
+  email:email,
+  password:password
+ });
 
  if(error){
   message(error.message);
@@ -166,6 +253,7 @@ async function login(){
  await openDashboard(data.user);
 }
 
+// LOAD DASHBOARD
 async function openDashboard(user){
  currentUser = user;
 
@@ -180,7 +268,7 @@ async function openDashboard(user){
  if(error){
   currentProfile = null;
   showScreen("profile");
-  message("Please complete or update your profile.");
+  message("Profile could not be loaded: " + error.message);
   return;
  }
 
@@ -197,45 +285,32 @@ async function openDashboard(user){
  document.getElementById("displayContact").textContent = data.contact || "Not added";
  document.getElementById("displayExperience").textContent = data.experience || "Not added";
  document.getElementById("displaySkills").textContent = data.skills || "Not added";
+
  document.getElementById("displayVideo").textContent =
   data.video_url ? "Your work video is saved." : "No video uploaded yet.";
 
  showScreen("dashboard");
- message("Your dashboard is 
-}         
+ message("Your dashboard is ready.");
+}
 
+// EDIT PROFILE
 function editProfile(){
- if(currentProfile){
-  document.getElementById("name").value = currentProfile.full_name || "";
-  document.getElementById("contact").value = currentProfile.contact || "";
-  document.getElementById("experience").value = currentProfile.experience || "";
-  document.getElementById("skills").value = currentProfile.skills || "";
+ if(!currentProfile){
+  message("Profile information is not available.");
+  return;
  }
+
+ document.getElementById("name").value = currentProfile.full_name || "";
+ document.getElementById("contact").value = currentProfile.contact || "";
+ document.getElementById("experience").value = currentProfile.experience || "";
+ document.getElementById("skills").value = currentProfile.skills || "";
  document.getElementById("video").value = "";
+
  showScreen("profile");
  message("Update your details and save.");
 }
 
-async function resetPassword(){
- const email = document.getElementById("email").value.trim();
-
- if(!email){
-  message("Enter your email address first.");
-  return;
- }
-
- const {error} = await db.auth.resetPasswordForEmail(email,{
-  redirectTo:"https://mandeepkaurmastgarh2002-commits.github.io/Work-Path-Gi/"
- });
-
- if(error){
-  message(error.message);
-  return;
- }
-
- message("Password reset link sent. Check your email.");
-}
-
+// SAVE PROFILE
 async function saveProfile(){
  const {data:{user},error:userError} = await db.auth.getUser();
 
@@ -277,7 +352,9 @@ async function saveProfile(){
 
  message("Saving your profile...");
 
- const {error} = await db.from("profiles").upsert(profile);
+ const {error} = await db
+  .from("profiles")
+  .upsert(profile);
 
  if(error){
   message("Profile save error: " + error.message);
@@ -290,6 +367,7 @@ async function saveProfile(){
  document.getElementById("displayContact").textContent = profile.contact || "Not added";
  document.getElementById("displayExperience").textContent = profile.experience || "Not added";
  document.getElementById("displaySkills").textContent = profile.skills || "Not added";
+
  document.getElementById("displayVideo").textContent =
   path ? "Your work video is saved." : "No video uploaded yet.";
 
@@ -297,6 +375,28 @@ async function saveProfile(){
  message("Your profile has been saved successfully!");
 }
 
+// FORGOT PASSWORD
+async function resetPassword(){
+ const email = document.getElementById("email").value.trim();
+
+ if(!email){
+  message("Enter your email address first.");
+  return;
+ }
+
+ const {error} = await db.auth.resetPasswordForEmail(email,{
+  redirectTo:"https://mandeepkaurmastgarh2002-commits.github.io/Work-Path-Gi/"
+ });
+
+ if(error){
+  message(error.message);
+  return;
+ }
+
+ message("Password reset link sent. Check your email.");
+}
+
+// SAVE NEW PASSWORD
 async function updatePassword(){
  const newPassword = document.getElementById("newPassword").value;
 
@@ -305,7 +405,9 @@ async function updatePassword(){
   return;
  }
 
- const {error} = await db.auth.updateUser({password:newPassword});
+ const {error} = await db.auth.updateUser({
+  password:newPassword
+ });
 
  if(error){
   message(error.message);
@@ -313,6 +415,7 @@ async function updatePassword(){
  }
 
  document.getElementById("newPassword").value = "";
+
  const {data:{user}} = await db.auth.getUser();
 
  if(user){
@@ -324,19 +427,24 @@ async function updatePassword(){
  message("Your password has been updated.");
 }
 
+// SIGN OUT
 async function logout(){
  await db.auth.signOut();
+
  currentUser = null;
  currentProfile = null;
+
  showScreen("auth");
  message("You have signed out.");
 }
 
+// AUTHENTICATION EVENTS
 db.auth.onAuthStateChange((event,session)=>{
  if(event === "PASSWORD_RECOVERY"){
   showScreen("recovery");
   message("Enter your new password.");
  }
+
  if(event === "SIGNED_OUT"){
   currentUser = null;
   currentProfile = null;
@@ -344,6 +452,7 @@ db.auth.onAuthStateChange((event,session)=>{
  }
 });
 
+// CHECK EXISTING LOGIN
 (async()=>{
  const {data:{session}} = await db.auth.getSession();
 
@@ -354,5 +463,6 @@ db.auth.onAuthStateChange((event,session)=>{
  }
 })();
 </script>
+
 </body>
 </html>
