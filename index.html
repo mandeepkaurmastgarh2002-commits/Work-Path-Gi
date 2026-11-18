@@ -201,8 +201,8 @@ async function openDashboard(user){
   data.video_url ? "Your work video is saved." : "No video uploaded yet.";
 
  showScreen("dashboard");
- message("Your dashboard is ready.");
-}
+ message("Your dashboard is 
+}         
 
 function editProfile(){
  if(currentProfile){
@@ -214,14 +214,6 @@ function editProfile(){
  document.getElementById("video").value = "";
  showScreen("profile");
  message("Update your details and save.");
-}
-
-
-
- currentProfile = profile;
-
- await openDashboard(user);
- message("Your profile has been saved!");
 }
 
 async function resetPassword(){
@@ -304,7 +296,6 @@ async function saveProfile(){
  showScreen("dashboard");
  message("Your profile has been saved successfully!");
 }
-
 
 async function updatePassword(){
  const newPassword = document.getElementById("newPassword").value;
